@@ -182,6 +182,11 @@ public class TS3ServerBridge implements TeamspeakActionListener
 						queue += MusicDatabase.instance.findSongByFile(line).get("song_name");
 						if(i == 0) queue += "[/b]";
 						i++;
+
+						if(queue.length() >= 900) {
+							sendToInvoker(eventInfo, queue);
+							queue = "";
+						}
 					}
 
 					sendToInvoker(eventInfo, queue);
