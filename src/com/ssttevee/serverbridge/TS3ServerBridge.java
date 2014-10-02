@@ -91,7 +91,11 @@ public class TS3ServerBridge implements TeamspeakActionListener
 
 				if(namequery.contains("[URL]")) {
 					namequery = namequery.substring(5, namequery.length() - 6);
-					MusicDatabase.instance.findSongByUrl(namequery);
+					song = MusicDatabase.instance.findSongByUrl(namequery);
+				}
+
+				if(namequery.equals("random")) {
+					song = MusicDatabase.instance.getRandomSong();
 				}
 
 				if(song == null) {

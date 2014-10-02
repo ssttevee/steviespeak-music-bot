@@ -8,6 +8,7 @@ import org.json.simple.parser.JSONParser;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Random;
 
 @SuppressWarnings("unchecked")
 public class MusicDatabase {
@@ -51,6 +52,10 @@ public class MusicDatabase {
 		song.put("song_name", newName);
 		obj.set(index, song);
 		save();
+	}
+
+	public JSONObject getRandomSong() {
+		return (JSONObject) obj.get(new Random().nextInt((obj.size()) + 1));
 	}
 
 	public JSONArray getAllSongs() {
