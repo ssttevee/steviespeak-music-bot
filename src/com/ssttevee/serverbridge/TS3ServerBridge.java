@@ -189,7 +189,7 @@ public class TS3ServerBridge implements TeamspeakActionListener
 							sendToInvoker(eventInfo, "Radio Mode is already on");
 						} else {
 							try {
-								String[] commands = {"bash", "-c", "mpc clear && mpc ls | mpc add && mpc repeat on && mpc random on && mpc consume off && mpc shuffle && mpc play"};
+								String[] commands = {"bash", "-c", "mpc clear && mpc ls | mpc add && mpc repeat on && mpc random on && mpc consume off && mpc crossfade 5 && mpc shuffle && mpc play"};
 								Process p = Runtime.getRuntime().exec(commands);
 								p.waitFor();
 								radiomode = true;
@@ -203,7 +203,7 @@ public class TS3ServerBridge implements TeamspeakActionListener
 							sendToInvoker(eventInfo, "Radio Mode is already off");
 						} else {
 							try {
-								String[] commands = {"bash", "-c", "mpc clear && mpc repeat off && mpc random off && mpc consume on"};
+								String[] commands = {"bash", "-c", "mpc clear && mpc repeat off && mpc random off && mpc consume on && mpc crossfade 0"};
 								Process p = Runtime.getRuntime().exec(commands);
 								p.waitFor();
 								radiomode = false;
