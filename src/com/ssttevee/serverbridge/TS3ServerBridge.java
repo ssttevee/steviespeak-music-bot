@@ -18,6 +18,7 @@ public class TS3ServerBridge implements TeamspeakActionListener
 {
 	JTS3ServerQuery query;
 	String authcode = null;
+	boolean radiomode = false;
 	
 	public static void main(String[] args)
 	{
@@ -45,75 +46,19 @@ public class TS3ServerBridge implements TeamspeakActionListener
 
 			// System.out.println(cmd + "|" + args.toString());
 
-			if (cmd.equalsIgnoreCase("quitbot")) {
+			if(cmd.equalsIgnoreCase("quitbot")) {
 				query.sendTextMessage(1, 3, "Music Bot Stopping");
 				query.removeTeamspeakActionListener();
 				query.closeTS3Connection();
 
 				System.exit(0);
-			} else if(cmd.equalsIgnoreCase("play")) {
-				try {
-					String[] commands = { "bash", "-c", "mpc play" };
-					Runtime.getRuntime().exec(commands);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			} else if(cmd.equalsIgnoreCase("pause")) {
-				try {
-					String[] commands = { "bash", "-c", "mpc pause" };
-					Runtime.getRuntime().exec(commands);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 			} else if(cmd.equalsIgnoreCase("skip")) {
 				try {
-					String[] commands = { "bash", "-c", "mpc next" };
+					String[] commands = {"bash", "-c", "mpc next"};
 					Runtime.getRuntime().exec(commands);
-				} catch (Exception e) {
+				} catch(Exception e) {
 					e.printStackTrace();
 				}
-			} else if(cmd.equalsIgnoreCase("add")) {
-				if(args.length < 2) {
-					sendToInvoker(eventInfo, "Bad Syntax");
-					return;
-				}
-
-				String namequery = args[1];
-				JSONObject song = null;
-
-				if(namequery.length() <= 5) {
-					try {
-						song = MusicDatabase.instance.findSongById(Integer.parseInt(namequery));
-					} catch(NumberFormatException e) {
-						e.printStackTrace();
-					}
-				}
-
-				if(namequery.contains("[URL]")) {
-					namequery = namequery.substring(5, namequery.length() - 6);
-					song = MusicDatabase.instance.findSongByUrl(namequery);
-				}
-
-				if(namequery.equals("random")) {
-					song = MusicDatabase.instance.getRandomSong();
-				}
-
-				if(song == null) {
-					System.out.println("song not found");
-					sendToInvoker(eventInfo, "Song not found");
-					return;
-				}
-
-				try {
-					String[] commands = { "bash", "-c", "mpc add " + song.get("filename") };
-					Process p = Runtime.getRuntime().exec(commands);
-					p.waitFor();
-
-					sendToInvoker(eventInfo, "Added [u]" + song.get("song_name") + "[/u] to queue");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
 			} else if(cmd.equalsIgnoreCase("db")) {
 				StringBuilder builder = new StringBuilder();
 				JSONArray allSongs;
@@ -166,33 +111,6 @@ public class TS3ServerBridge implements TeamspeakActionListener
 				}
 
 				sendToInvoker(eventInfo, builder.toString());
-			} else if(cmd.equalsIgnoreCase("getqueue")) {
-				try {
-					String queue = "Current Song Queue:";
-
-					String[] commands = { "bash", "-c", "mpc playlist" };
-					Process p = Runtime.getRuntime().exec(commands);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-					int i = 0;
-					String line;
-					while ((line = reader.readLine())!= null) {
-						queue += "\n";
-						if(i == 0) queue += "[b]";
-						queue += MusicDatabase.instance.findSongByFile(line).get("song_name");
-						if(i == 0) queue += "[/b]";
-						i++;
-
-						if(queue.length() >= 900) {
-							sendToInvoker(eventInfo, queue);
-							queue = "";
-						}
-					}
-
-					sendToInvoker(eventInfo, queue);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 			} else if(cmd.equalsIgnoreCase("dl")) {
 				String link = args[1];
 
@@ -213,19 +131,19 @@ public class TS3ServerBridge implements TeamspeakActionListener
 
 					sendToInvoker(eventInfo, "Downloading " + link);
 
-					String[] commands = { "bash", "-c", "youtube-dl -o \"/home/$USER/music/" + api.getService() + "/%(id)s.%(ext)s\" --extract-audio --audio-format mp3 " + link };
+					String[] commands = {"bash", "-c", "youtube-dl -o \"/home/$USER/music/" + api.getService() + "/%(id)s.%(ext)s\" --extract-audio --audio-format mp3 " + link};
 					Process p = Runtime.getRuntime().exec(commands);
 					BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
 					String line;
-					while ((line = reader.readLine())!= null) {
+					while((line = reader.readLine()) != null) {
 						sendToInvoker(eventInfo, line);
 					}
 
 					JSONObject song = MusicDatabase.instance.addSong(api);
 
 					sendToInvoker(eventInfo, "Downloaded [u]" + song.get("song_name") + "[/u] as [color=red]" + song.get("id") + "[/color]");
-				} catch (Exception e) {
+				} catch(Exception e) {
 					e.printStackTrace();
 				}
 			} else if(cmd.equalsIgnoreCase("del")) {
@@ -234,12 +152,12 @@ public class TS3ServerBridge implements TeamspeakActionListener
 					JSONObject song = MusicDatabase.instance.findSongById(Integer.parseInt(args[1]));
 					MusicDatabase.instance.delSong(song);
 					try {
-						String[] commands = { "bash", "-c", "rm -f ~/" + song.get("filename") };
+						String[] commands = {"bash", "-c", "rm -f ~/" + song.get("filename")};
 						Process p = Runtime.getRuntime().exec(commands);
 						p.waitFor();
 
 						sendToInvoker(eventInfo, "[u]" + song.get("song_name") + "[/u] was deleted");
-					} catch (Exception e) {
+					} catch(Exception e) {
 						e.printStackTrace();
 					}
 				} else {
@@ -264,6 +182,42 @@ public class TS3ServerBridge implements TeamspeakActionListener
 				} else {
 					sendToInvoker(eventInfo, "Permission denied");
 				}
+			} else if(cmd.equalsIgnoreCase("radiomode")) {
+				if(UserDatabase.instance.isUserAdmin(eventInfo.get("invokeruid"))) {
+					if(args.length == 2 && args[1].equalsIgnoreCase("on")) {
+						if(radiomode) {
+							sendToInvoker(eventInfo, "Radio Mode is already on");
+						} else {
+							try {
+								String[] commands = {"bash", "-c", "mpc clear && mpc ls | mpc add && mpc repeat on && mpc random on && mpc consume off && mpc shuffle && mpc play"};
+								Process p = Runtime.getRuntime().exec(commands);
+								p.waitFor();
+								radiomode = true;
+								sendToInvoker(eventInfo, "Radio Mode is now ON");
+							} catch(Exception e) {
+								e.printStackTrace();
+							}
+						}
+					} else if(args.length == 2 && args[1].equalsIgnoreCase("off")) {
+						if(!radiomode) {
+							sendToInvoker(eventInfo, "Radio Mode is already off");
+						} else {
+							try {
+								String[] commands = {"bash", "-c", "mpc clear && mpc repeat off && mpc random off && mpc consume on"};
+								Process p = Runtime.getRuntime().exec(commands);
+								p.waitFor();
+								radiomode = false;
+								sendToInvoker(eventInfo, "Radio Mode is now OFF");
+							} catch(Exception e) {
+								e.printStackTrace();
+							}
+						}
+					} else {
+						sendToInvoker(eventInfo, "Radio Mode is " + (radiomode ? "ON" : "OFF"));
+					}
+				} else {
+					sendToInvoker(eventInfo, "Permission denied");
+				}
 			} else if(cmd.equalsIgnoreCase("auth")) {
 				if(authcode == null) {
 					sendToInvoker(eventInfo, "Error: no authentication code available");
@@ -276,6 +230,119 @@ public class TS3ServerBridge implements TeamspeakActionListener
 						sendToInvoker(eventInfo, "[b][color=red]BAD AUTHENTICATION CODE![/color][/b]");
 					}
 				}
+			} else if(cmd.equalsIgnoreCase("songname")) {
+				try {
+					String queue = "Current Song Queue:";
+
+					String[] commands = {"bash", "-c", "mpc current"};
+					Process p = Runtime.getRuntime().exec(commands);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+					int i = 0;
+					String line;
+					while((line = reader.readLine()) != null) {
+						queue += "\n";
+						if(i == 0) queue += "[b]";
+						queue += MusicDatabase.instance.findSongByFile(line).get("song_name");
+						if(i == 0) queue += "[/b]";
+						i++;
+
+						if(queue.length() >= 900) {
+							sendToInvoker(eventInfo, queue);
+							queue = "";
+						}
+					}
+
+					sendToInvoker(eventInfo, queue);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			} else if(radiomode) {
+				sendToInvoker(eventInfo, "Unavailable in radio mode");
+
+			} else if(cmd.equalsIgnoreCase("play")) {
+				try {
+					String[] commands = {"bash", "-c", "mpc play"};
+					Runtime.getRuntime().exec(commands);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			} else if(cmd.equalsIgnoreCase("pause")) {
+				try {
+					String[] commands = {"bash", "-c", "mpc pause"};
+					Runtime.getRuntime().exec(commands);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			} else if(cmd.equalsIgnoreCase("getqueue")) {
+				try {
+					String queue = "Current Song Queue:";
+
+					String[] commands = {"bash", "-c", "mpc playlist"};
+					Process p = Runtime.getRuntime().exec(commands);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+					int i = 0;
+					String line;
+					while((line = reader.readLine()) != null) {
+						queue += "\n";
+						if(i == 0) queue += "[b]";
+						queue += MusicDatabase.instance.findSongByFile(line).get("song_name");
+						if(i == 0) queue += "[/b]";
+						i++;
+
+						if(queue.length() >= 900) {
+							sendToInvoker(eventInfo, queue);
+							queue = "";
+						}
+					}
+
+					sendToInvoker(eventInfo, queue);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			} else if(cmd.equalsIgnoreCase("add")) {
+				if(args.length < 2) {
+					sendToInvoker(eventInfo, "Bad Syntax");
+					return;
+				}
+
+				String namequery = args[1];
+				JSONObject song = null;
+
+				if(namequery.length() <= 5) {
+					try {
+						song = MusicDatabase.instance.findSongById(Integer.parseInt(namequery));
+					} catch(NumberFormatException e) {
+						e.printStackTrace();
+					}
+				}
+
+				if(namequery.contains("[URL]")) {
+					namequery = namequery.substring(5, namequery.length() - 6);
+					song = MusicDatabase.instance.findSongByUrl(namequery);
+				}
+
+				if(namequery.equals("random")) {
+					song = MusicDatabase.instance.getRandomSong();
+				}
+
+				if(song == null) {
+					System.out.println("song not found");
+					sendToInvoker(eventInfo, "Song not found");
+					return;
+				}
+
+				try {
+					String[] commands = { "bash", "-c", "mpc add " + song.get("filename") };
+					Process p = Runtime.getRuntime().exec(commands);
+					p.waitFor();
+
+					sendToInvoker(eventInfo, "Added [u]" + song.get("song_name") + "[/u] to queue");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
 			}
 
 		}
@@ -292,7 +359,7 @@ public class TS3ServerBridge implements TeamspeakActionListener
 			MusicDatabase.instance.upgradeDb();
 		} else if(command.equals("getauthcode")) {
 			authcode = RandomString.getString(10);
-			System.out.print(authcode);
+			System.out.print(authcode + "\n");
 		}
 	}
 
