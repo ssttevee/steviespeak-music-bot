@@ -9,12 +9,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.StringTokenizer;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * JTS3ServerQuery library version 1.0.10
@@ -238,7 +233,7 @@ public class JTS3ServerQuery
 	public static final int EVENT_MODE_CHANNEL = 5;
 	
 	private boolean eventNotifyCheckActive = false;
-	private TeamspeakActionListener actionClass = null;
+	private List<TeamspeakActionListener> actionListeners = null;
 	private int queryCurrentClientID = -1;
 	private int queryCurrentServerID = -1;
 	private int queryCurrentChannelID = -1;
@@ -259,7 +254,7 @@ public class JTS3ServerQuery
 	
 	public JTS3ServerQuery()
 	{
-		threadName = "";
+		this("");
 	}
 	
 	/**
@@ -270,6 +265,7 @@ public class JTS3ServerQuery
 	public JTS3ServerQuery(String threadName)
 	{
 		this.threadName = threadName + "_";
+		this.actionListeners = new ArrayList<TeamspeakActionListener>();
 	}
 	
 	private synchronized void writeCommLog(String commMessage)
@@ -356,22 +352,35 @@ public class JTS3ServerQuery
 	 * @since 0.7
 	 * @see TeamspeakActionListener
 	 */
-	public void setTeamspeakActionListener(TeamspeakActionListener listenerClass)
+	public void addTeamspeakActionListener(TeamspeakActionListener listenerClass)
 	{
-		this.actionClass = listenerClass;
+		this.actionListeners.add(listenerClass);
 	}
 	
 	/**
 	 * Remove the class from receiving Teamspeak events. This function also call removeAllEvents(), if needed.
 	 * @since 0.7
 	 */
-	public void removeTeamspeakActionListener()
+	public void removeTeamspeakActionListener(TeamspeakActionListener listenerClass)
 	{
 		if (eventNotifyTimerTask != null)
 		{
 			removeAllEvents();
 		}
-		this.actionClass = null;
+		this.actionListeners.remove(listenerClass);
+	}
+
+	/**
+	 * Remove the class from receiving Teamspeak events. This function also call removeAllEvents(), if needed.
+	 * @since 0.7
+	 */
+	public void clearTeamspeakActionListeners()
+	{
+		if (eventNotifyTimerTask != null)
+		{
+			removeAllEvents();
+		}
+		this.actionListeners.clear();
 	}
 	
 	/**
@@ -391,7 +400,7 @@ public class JTS3ServerQuery
 	 */
 	public boolean addEventNotify(int eventMode, int channelID)
 	{
-		if (actionClass == null)
+		if (actionListeners.isEmpty())
 		{
 			saveLastError("Use setTeamspeakActionListener() first!");
 			return false;
@@ -1512,6 +1521,94 @@ public class JTS3ServerQuery
 		
 		return true;
 	}
+
+	/**
+	 * Add a permission to a client.
+	 * @param clientDBID The client database ID, which should get the complain.
+	 * @param permName The permission name.
+	 * @param permValue The permission value.
+	 * @param permSkip The message of the complain.
+	 * @return <code>true</code> if complainadd was successful, <code>false</code> if not (check error with getLastError()).
+	 * @since 1.0
+	 * @see JTS3ServerQuery#getLastError()
+	 */
+	public boolean clientAddPermission(int clientDBID, String permName, String permValue, boolean permSkip)
+	{
+		resetLastError();
+
+		if (!isConnected())
+		{
+			saveLastError("clientAddPermission(): Not connected to TS3 server!");
+			return false;
+		}
+
+		if (permName == null || permName.length() == 0)
+		{
+			saveLastError("clientAddPermission(): No permission given!");
+			return false;
+		}
+
+		if (permValue == null || permValue.length() == 0)
+		{
+			saveLastError("clientAddPermission(): No permission value given!");
+			return false;
+		}
+
+		String command = "clientaddperm cldbid=" + Integer.toString(clientDBID) + " permsid=" + permName + " permvalue=" + permValue + "permskip=" + Integer.toString(permSkip ? 1 : 0);
+		HashMap<String, String> hmIn = doInternalCommand(command);
+
+		if (hmIn == null)
+		{
+			return false;
+		}
+		else if (!hmIn.get("id").equals("0"))
+		{
+			saveLastError("clientAddPermission()", hmIn.get("id"), hmIn.get("msg"), hmIn.get("extra_msg"), hmIn.get("failed_permid"));
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Add a permission to a client.
+	 * @param clientDBID The client database ID, which should get the complain.
+	 * @param permName The permission name.
+	 * @return <code>true</code> if complainadd was successful, <code>false</code> if not (check error with getLastError()).
+	 * @since 1.0
+	 * @see JTS3ServerQuery#getLastError()
+	 */
+	public boolean clientDeletePermission(int clientDBID, String permName)
+	{
+		resetLastError();
+
+		if (!isConnected())
+		{
+			saveLastError("clientDeletePermission(): Not connected to TS3 server!");
+			return false;
+		}
+
+		if (permName == null || permName.length() == 0)
+		{
+			saveLastError("clientDeletePermission(): No permission given!");
+			return false;
+		}
+
+		String command = "clientdelperm cldbid=" + Integer.toString(clientDBID) + " permsid=" + permName;
+		HashMap<String, String> hmIn = doInternalCommand(command);
+
+		if (hmIn == null)
+		{
+			return false;
+		}
+		else if (!hmIn.get("id").equals("0"))
+		{
+			saveLastError("clientDeletePermission()", hmIn.get("id"), hmIn.get("msg"), hmIn.get("extra_msg"), hmIn.get("failed_permid"));
+			return false;
+		}
+
+		return true;
+	}
 	
 	/**
 	 * Check if connected to the TS3 server.
@@ -2179,7 +2276,7 @@ public class JTS3ServerQuery
 			return false;
 		}
 		
-		if (actionClass != null)
+		if (!actionListeners.isEmpty())
 		{
 			final int pos = actionLine.indexOf(" ");
 			
@@ -2193,10 +2290,13 @@ public class JTS3ServerQuery
 					{
 						try
 						{
-							actionClass.teamspeakActionPerformed(eventType, parseLine(actionLine.substring(pos+1)));
+							for(TeamspeakActionListener actionClass : actionListeners) {
+								actionClass.teamspeakActionPerformed(eventType, parseLine(actionLine.substring(pos + 1)));
+							}
 						}
 						catch (Exception e)
 						{
+							e.printStackTrace();
 							writeErrLog(e);
 						}
 					}

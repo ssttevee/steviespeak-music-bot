@@ -1,7 +1,6 @@
 package com.ssttevee.serverbridge.util.apis;
 
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.regex.Matcher;

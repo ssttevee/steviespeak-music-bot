@@ -6,8 +6,9 @@ import java.util.HashMap;
  * Implement this interface, if you want to receive notify events from Teamspeak 3 server.
  * @author Stefan Martens
  * @since 0.7
- * @see JTS3ServerQuery#setTeamspeakActionListener(TeamspeakActionListener)
- * @see JTS3ServerQuery#removeTeamspeakActionListener()
+ * @see JTS3ServerQuery#addTeamspeakActionListener(TeamspeakActionListener)
+ * @see JTS3ServerQuery#removeTeamspeakActionListener(TeamspeakActionListener)
+ * @see JTS3ServerQuery#clearTeamspeakActionListeners()
  */
 public interface TeamspeakActionListener
 {
