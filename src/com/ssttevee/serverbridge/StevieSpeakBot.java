@@ -6,7 +6,6 @@ import com.ssttevee.serverbridge.util.UserDatabase;
 import de.stefan1200.jts3serverquery.JTS3ServerQuery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
@@ -30,19 +29,6 @@ public class StevieSpeakBot extends BaseBot {
 
 	public StevieSpeakBot() {
 		super("steviebot");
-	}
-
-	private void echoError() {
-		String error = query.getLastError();
-		if (error != null) {
-			System.out.println(error);
-			if (query.getLastErrorPermissionID() != -1) {
-				HashMap<String, String> permInfo = query.getPermissionInfo(query.getLastErrorPermissionID());
-				if (permInfo != null) {
-					System.out.println("Missing Permission: " + permInfo.get("permname"));
-				}
-			}
-		}
 	}
 
 	@Override

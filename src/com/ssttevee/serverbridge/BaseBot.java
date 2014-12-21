@@ -5,6 +5,7 @@ import de.stefan1200.jts3serverquery.TeamspeakActionListener;
 
 import java.util.*;
 
+
 public class BaseBot implements TeamspeakActionListener {
 	public JTS3ServerQuery query;
 	public List<CommandListener> commandListeners = new ArrayList<CommandListener>();
@@ -55,6 +56,19 @@ public class BaseBot implements TeamspeakActionListener {
 	public void stop() {
 		query.clearTeamspeakActionListeners();
 		query.closeTS3Connection();
+	}
+
+	protected void echoError() {
+		String error = query.getLastError();
+		if (error != null) {
+			System.out.println(error);
+			if (query.getLastErrorPermissionID() != -1) {
+				HashMap<String, String> permInfo = query.getPermissionInfo(query.getLastErrorPermissionID());
+				if (permInfo != null) {
+					System.out.println("Missing Permission: " + permInfo.get("permname"));
+				}
+			}
+		}
 	}
 
 	protected abstract class CommandListener {
