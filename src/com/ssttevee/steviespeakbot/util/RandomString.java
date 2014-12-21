@@ -1,4 +1,4 @@
-package com.ssttevee.serverbridge.util;
+package com.ssttevee.steviespeakbot.util;
 
 import java.util.Random;
 

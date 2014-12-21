@@ -1,4 +1,4 @@
-package com.ssttevee.serverbridge;
+package com.ssttevee.steviespeakbot;
 
 import de.stefan1200.jts3serverquery.JTS3ServerQuery;
 import de.stefan1200.jts3serverquery.TeamspeakActionListener;

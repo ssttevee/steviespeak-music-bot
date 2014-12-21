@@ -1,8 +1,8 @@
-package com.ssttevee.serverbridge;
+package com.ssttevee.steviespeakbot;
 
-import com.ssttevee.serverbridge.util.MusicDatabase;
-import com.ssttevee.serverbridge.util.UserDatabase;
-import com.ssttevee.serverbridge.util.apis.API;
+import com.ssttevee.steviespeakbot.util.MusicDatabase;
+import com.ssttevee.steviespeakbot.util.UserDatabase;
+import com.ssttevee.steviespeakbot.util.apis.API;
 import de.stefan1200.jts3serverquery.JTS3ServerQuery;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -362,7 +362,7 @@ public class MusicBot extends BaseBot {
 					JSONObject song = MusicDatabase.instance.findSongById(Integer.parseInt(args[1]));
 					MusicDatabase.instance.delSong(song);
 					try {
-						Process p = Runtime.getRuntime().exec(new String[] {"bash", "-c", "rm -f ~/" + song.get("filename")});
+						Process p = Runtime.getRuntime().exec(new String[]{"bash", "-c", "rm -f ~/" + song.get("filename")});
 						p.waitFor();
 
 						sendToInvoker(invokerId, "[u]" + song.get("song_name") + "[/u] was deleted");

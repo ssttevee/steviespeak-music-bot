@@ -1,8 +1,8 @@
-package com.ssttevee.serverbridge;
+package com.ssttevee.steviespeakbot;
 
-import com.ssttevee.serverbridge.util.MusicDatabase;
-import com.ssttevee.serverbridge.util.RandomString;
-import com.ssttevee.serverbridge.util.UserDatabase;
+import com.ssttevee.steviespeakbot.util.MusicDatabase;
+import com.ssttevee.steviespeakbot.util.RandomString;
+import com.ssttevee.steviespeakbot.util.UserDatabase;
 import de.stefan1200.jts3serverquery.JTS3ServerQuery;
 
 import java.util.ArrayList;

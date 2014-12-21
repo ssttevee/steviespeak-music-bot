@@ -1,6 +1,6 @@
-package com.ssttevee.serverbridge.util.apis;
+package com.ssttevee.steviespeakbot.util.apis;
 
-import com.ssttevee.serverbridge.util.JSONReader;
+import com.ssttevee.steviespeakbot.util.JSONReader;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;

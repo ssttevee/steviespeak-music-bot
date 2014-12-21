@@ -1,4 +1,4 @@
-package com.ssttevee.serverbridge.util;
+package com.ssttevee.steviespeakbot.util;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

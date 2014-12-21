@@ -1,4 +1,4 @@
-package com.ssttevee.serverbridge.util.apis;
+package com.ssttevee.steviespeakbot.util.apis;
 
 import java.lang.reflect.Constructor;
 import java.net.URL;

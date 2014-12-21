@@ -1,6 +1,6 @@
-package com.ssttevee.serverbridge.util;
+package com.ssttevee.steviespeakbot.util;
 
-import com.ssttevee.serverbridge.util.apis.API;
+import com.ssttevee.steviespeakbot.util.apis.API;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
